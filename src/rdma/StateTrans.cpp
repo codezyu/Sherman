@@ -19,9 +19,9 @@ bool modifyQPtoInit(struct ibv_qp *qp, RdmaContext *context) {
             attr.qp_access_flags = IBV_ACCESS_REMOTE_WRITE;
             break;
 
-        case IBV_EXP_QPT_DC_INI:
-            Debug::notifyError("implement me:)");
-            break;
+        // case IBV_EXP_QPT_DC_INI:
+        //     Debug::notifyError("implement me:)");
+        //     break;
 
         default:
             Debug::notifyError("implement me:)");
@@ -142,17 +142,16 @@ bool modifyDCtoRTS(struct ibv_qp *qp, uint16_t remoteLid, uint8_t *remoteGid,
                    RdmaContext *context) {
     // assert(qp->qp_type == IBV_EXP_QPT_DC_INI);
 
-    struct ibv_exp_qp_attr attr;
+    struct ibv_qp_attr attr;
     memset(&attr, 0, sizeof(attr));
 
     attr.qp_state = IBV_QPS_INIT;
     attr.pkey_index = 0;
     attr.port_num = context->port;
     attr.qp_access_flags = 0;
-    attr.dct_key = DCT_ACCESS_KEY;
 
-    if (ibv_modify_qp(qp, &attr, IBV_EXP_QP_STATE | IBV_EXP_QP_PKEY_INDEX |
-                                         IBV_EXP_QP_PORT | IBV_EXP_QP_DC_KEY)) {
+    if (ibv_modify_qp(qp, &attr, IBV_QP_STATE | IBV_QP_PKEY_INDEX |
+                                         IBV_QP_PORT )) {
         Debug::notifyError("failed to modify QP state to INI");
         return false;
     }
@@ -161,8 +160,8 @@ bool modifyDCtoRTS(struct ibv_qp *qp, uint16_t remoteLid, uint8_t *remoteGid,
     attr.path_mtu = IBV_MTU_4096;
 
     fillAhAttr(&attr.ah_attr, remoteLid, remoteGid, context);
-    if (ibv_modify_qp(qp, &attr, IBV_EXP_QP_STATE | IBV_EXP_QP_PATH_MTU |
-                                         IBV_EXP_QP_AV)) {
+    if (ibv_modify_qp(qp, &attr, IBV_QP_STATE | IBV_QP_PATH_MTU |
+                                         IBV_QP_AV)) {
         Debug::notifyError("failed to modify QP state to RTR");
         return false;
     }
@@ -172,9 +171,9 @@ bool modifyDCtoRTS(struct ibv_qp *qp, uint16_t remoteLid, uint8_t *remoteGid,
     attr.retry_cnt = 7;
     attr.rnr_retry = 7;
     attr.max_rd_atomic = 16;
-    if (ibv_modify_qp(qp, &attr, IBV_EXP_QP_STATE | IBV_EXP_QP_TIMEOUT |
-                                         IBV_EXP_QP_RETRY_CNT |
-                                         IBV_EXP_QP_RNR_RETRY |
+    if (ibv_modify_qp(qp, &attr, IBV_QP_STATE | IBV_QP_TIMEOUT |
+                                         IBV_QP_RETRY_CNT |
+                                         IBV_QP_RNR_RETRY |
                                          IBV_QP_MAX_QP_RD_ATOMIC)) {
 
         Debug::notifyError("failed to modify QP state to RTS");
