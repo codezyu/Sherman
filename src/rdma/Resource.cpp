@@ -140,25 +140,19 @@ ibv_mr *createMemoryRegionOnChip(uint64_t mm, uint64_t mmSize,
                                  RdmaContext *ctx) {
 
   /* Device memory allocation request */
-  struct ibv_exp_alloc_dm_attr dm_attr;
+  struct ibv_alloc_dm_attr dm_attr;
   memset(&dm_attr, 0, sizeof(dm_attr));
   dm_attr.length = mmSize;
-  struct ibv_exp_dm *dm = ibv_exp_alloc_dm(ctx->ctx, &dm_attr);
+  struct ibv_dm *dm = ibv_alloc_dm(ctx->ctx, &dm_attr);
   if (!dm) {
     Debug::notifyError("Allocate on-chip memory failed");
     return nullptr;
   }
 
   /* Device memory registration as memory region */
-  struct ibv_exp_reg_mr_in mr_in;
-  memset(&mr_in, 0, sizeof(mr_in));
-  mr_in.pd = ctx->pd, mr_in.addr = (void *)mm, mr_in.length = mmSize,
-  mr_in.exp_access = IBV_ACCESS_LOCAL_WRITE | IBV_ACCESS_REMOTE_READ |
-                     IBV_ACCESS_REMOTE_WRITE | IBV_ACCESS_REMOTE_ATOMIC,
-  mr_in.create_flags = 0;
-  mr_in.dm = dm;
-  mr_in.comp_mask = IBV_EXP_REG_MR_DM;
-  struct ibv_mr *mr = ibv_exp_reg_mr(&mr_in);
+  int access = IBV_ACCESS_LOCAL_WRITE | IBV_ACCESS_REMOTE_READ |
+                     IBV_ACCESS_REMOTE_WRITE | IBV_ACCESS_REMOTE_ATOMIC;
+  struct ibv_mr *mr = ibv_reg_mr(ctx->pd, (void *)mm, mmSize, access);
   if (!mr) {
     Debug::notifyError("Memory registration failed");
     return nullptr;
@@ -225,7 +219,7 @@ bool createQueuePair(ibv_qp **qp, ibv_qp_type mode, ibv_cq *cq,
   return createQueuePair(qp, mode, cq, cq, context, qpsMaxDepth, maxInlineData);
 }
 
-bool createDCTarget(ibv_exp_dct **dct, ibv_cq *cq, RdmaContext *context,
+bool createDCTarget(ibv_qp **dct, ibv_cq *cq, RdmaContext *context,
                     uint32_t qpsMaxDepth, uint32_t maxInlineData) {
 
   // construct SRQ fot DC Target :)
@@ -241,28 +235,20 @@ bool createDCTarget(ibv_exp_dct **dct, ibv_cq *cq, RdmaContext *context,
   memset(&dv_init_attr, 0, sizeof(dv_init_attr));
   memset(&init_attr, 0, sizeof(init_attr));
 
-  init_attr.qp_type = IBV_QPT_RC;
+  init_attr.qp_type = IBV_QPT_DRIVER;
   init_attr.send_cq = cq;
   init_attr.recv_cq = cq;
   init_attr.pd = context->pd;
 
-  dAttr.pd = context->pd;
-  dAttr.cq = cq;
-  dAttr.srq = srq;
-  dAttr.dc_key = DCT_ACCESS_KEY;
-  dAttr.port = context->port;
-  dAttr.access_flags = IBV_ACCESS_REMOTE_READ | IBV_ACCESS_REMOTE_READ |
-                       IBV_ACCESS_REMOTE_ATOMIC;
-  dAttr.min_rnr_timer = 2;
-  dAttr.tclass = 0;
-  dAttr.flow_label = 0;
-  dAttr.mtu = IBV_MTU_4096;
-  dAttr.pkey_index = 0;
-  dAttr.hop_limit = 1;
-  dAttr.create_flags = 0;
-  dAttr.inline_size = maxInlineData;
+  //set DCT
+  init_attr.comp_mask |= IBV_QP_INIT_ATTR_PD;
+  init_attr.srq = srq;
+  dv_init_attr.comp_mask = MLX5DV_QP_INIT_ATTR_MASK_DC;
+  dv_init_attr.dc_init_attr.dc_type = MLX5DV_DCTYPE_DCT;
+  dv_init_attr.dc_init_attr.dct_access_key = DCT_ACCESS_KEY;
 
-  *dct = mlx5dv_create_qp(context->ctx, &dAttr);
+
+  *dct = mlx5dv_create_qp(context->ctx, &init_attr, &dv_init_attr);
   if (dct == NULL) {
     Debug::notifyError("failed to create dc target");
     return false;
