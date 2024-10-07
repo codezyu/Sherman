@@ -179,22 +179,15 @@ bool createQueuePair(ibv_qp **qp, ibv_qp_type mode, ibv_cq *send_cq,
                      ibv_cq *recv_cq, RdmaContext *context,
                      uint32_t qpsMaxDepth, uint32_t maxInlineData) {
 
-  struct ibv_exp_qp_init_attr attr;
+  struct ibv_qp_init_attr attr;
   memset(&attr, 0, sizeof(attr));
 
   attr.qp_type = mode;
   attr.sq_sig_all = 0;
   attr.send_cq = send_cq;
   attr.recv_cq = recv_cq;
-  attr.pd = context->pd;
 
-  if (mode == IBV_QPT_RC) {
-    attr.comp_mask = IBV_EXP_QP_INIT_ATTR_CREATE_FLAGS |
-                     IBV_EXP_QP_INIT_ATTR_PD | IBV_EXP_QP_INIT_ATTR_ATOMICS_ARG;
-    attr.max_atomic_arg = 32;
-  } else {
-    attr.comp_mask = IBV_EXP_QP_INIT_ATTR_PD;
-  }
+
 
   attr.cap.max_send_wr = qpsMaxDepth;
   attr.cap.max_recv_wr = qpsMaxDepth;
@@ -202,7 +195,7 @@ bool createQueuePair(ibv_qp **qp, ibv_qp_type mode, ibv_cq *send_cq,
   attr.cap.max_recv_sge = 1;
   attr.cap.max_inline_data = maxInlineData;
 
-  *qp = ibv_exp_create_qp(context->ctx, &attr);
+  *qp = ibv_create_qp(context->pd, &attr);
   if (!(*qp)) {
     Debug::notifyError("Failed to create QP");
     return false;
