@@ -235,8 +235,17 @@ bool createDCTarget(ibv_exp_dct **dct, ibv_cq *cq, RdmaContext *context,
   attr.attr.max_sge = 1;
   ibv_srq *srq = ibv_create_srq(context->pd, &attr);
 
-  ibv_exp_dct_init_attr dAttr;
-  memset(&dAttr, 0, sizeof(dAttr));
+// rdma-core
+  struct mlx5dv_qp_init_attr dv_init_attr;
+  struct ibv_qp_init_attr_ex init_attr;
+  memset(&dv_init_attr, 0, sizeof(dv_init_attr));
+  memset(&init_attr, 0, sizeof(init_attr));
+
+  init_attr.qp_type = IBV_QPT_RC;
+  init_attr.send_cq = cq;
+  init_attr.recv_cq = cq;
+  init_attr.pd = context->pd;
+
   dAttr.pd = context->pd;
   dAttr.cq = cq;
   dAttr.srq = srq;
@@ -253,7 +262,7 @@ bool createDCTarget(ibv_exp_dct **dct, ibv_cq *cq, RdmaContext *context,
   dAttr.create_flags = 0;
   dAttr.inline_size = maxInlineData;
 
-  *dct = ibv_exp_create_dct(context->ctx, &dAttr);
+  *dct = mlx5dv_create_qp(context->ctx, &dAttr);
   if (dct == NULL) {
     Debug::notifyError("failed to create dc target");
     return false;

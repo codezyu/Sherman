@@ -40,7 +40,7 @@ void checkDMSupported(struct ibv_context *ctx) {
   attrs.comp_mask = IBV_EXP_DEVICE_ATTR_UMR;
   attrs.comp_mask |= IBV_EXP_DEVICE_ATTR_MAX_DM_SIZE;
 
-  if (ibv_exp_query_device(ctx, &attrs)) {
+  if (ibv_query_device(ctx, &attrs)) {
     printf("Couldn't query device attributes\n");
   }
 

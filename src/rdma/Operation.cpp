@@ -68,7 +68,7 @@ static inline void fillSgeWr(ibv_sge &sg, ibv_recv_wr &wr, uint64_t source,
   wr.num_sge = 1;
 }
 
-static inline void fillSgeWr(ibv_sge &sg, ibv_exp_send_wr &wr, uint64_t source,
+static inline void fillSgeWr(ibv_sge &sg, ibv_send_wr &wr, uint64_t source,
                              uint64_t size, uint32_t lkey) {
   memset(&sg, 0, sizeof(sg));
   sg.addr = (uintptr_t)source;
@@ -254,8 +254,8 @@ bool rdmaFetchAndAddBoundary(ibv_qp *qp, uint64_t source, uint64_t dest,
                              uint64_t add, uint32_t lkey, uint32_t remoteRKey,
                              uint64_t boundary, bool singal, uint64_t wr_id) {
   struct ibv_sge sg;
-  struct ibv_exp_send_wr wr;
-  struct ibv_exp_send_wr *wrBad;
+  struct ibv_send_wr wr;
+  struct ibv_send_wr *wrBad;
 
   fillSgeWr(sg, wr, source, 8, lkey);
 
@@ -317,8 +317,8 @@ bool rdmaCompareAndSwapMask(ibv_qp *qp, uint64_t source, uint64_t dest,
                             uint64_t compare, uint64_t swap, uint32_t lkey,
                             uint32_t remoteRKey, uint64_t mask, bool singal) {
   struct ibv_sge sg;
-  struct ibv_exp_send_wr wr;
-  struct ibv_exp_send_wr *wrBad;
+  struct ibv_send_wr wr;
+  struct ibv_send_wr *wrBad;
 
   fillSgeWr(sg, wr, source, 8, lkey);
 

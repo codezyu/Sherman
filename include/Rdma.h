@@ -6,6 +6,7 @@
 #include <assert.h>
 #include <cstring>
 #include <infiniband/verbs.h>
+#include <infiniband/mlx5dv.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -53,6 +54,17 @@ struct Region {
   uint32_t size;
 
   uint64_t dest;
+};
+struct ibv_exp_dct {
+	struct ibv_context     *context;
+	uint32_t		handle;
+	uint32_t		dct_num;
+	struct ibv_pd	       *pd;
+	struct ibv_srq	       *srq;
+	struct ibv_cq	       *cq;
+	pthread_mutex_t		mutex;
+	pthread_cond_t		cond;
+	uint32_t		events_completed;
 };
 
 //// Resource.cpp
