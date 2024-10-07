@@ -35,21 +35,22 @@ void rdmaQueryQueuePair(ibv_qp *qp) {
 }
 
 void checkDMSupported(struct ibv_context *ctx) {
-  struct ibv_exp_device_attr attrs;
+  struct ibv_device_attr attrs;
 
-  attrs.comp_mask = IBV_EXP_DEVICE_ATTR_UMR;
-  attrs.comp_mask |= IBV_EXP_DEVICE_ATTR_MAX_DM_SIZE;
+  // deprecated attr
+  // attrs.comp_mask = IBV_EXP_DEVICE_ATTR_UMR;
+  // attrs.comp_mask |= IBV_EXP_DEVICE_ATTR_MAX_DM_SIZE;
+  printf("may be this is not supported in MLX5\n");
+  // if (ibv_query_device(ctx, &attrs)) {
+  //   printf("Couldn't query device attributes\n");
+  // }
 
-  if (ibv_query_device(ctx, &attrs)) {
-    printf("Couldn't query device attributes\n");
-  }
-
-  if (!(attrs.comp_mask & IBV_EXP_DEVICE_ATTR_MAX_DM_SIZE)) {
-    fprintf(stderr, "Can not support device memory!\n");
-    exit(-1);
-  } else if (!(attrs.max_dm_size)) {
-  } else {
-    kMaxDeviceMemorySize = attrs.max_dm_size;
-    printf("The RNIC has %dKB device memory\n", kMaxDeviceMemorySize / 1024);
-  }
+  // if (!(attrs.max_dm)) {
+  //   fprintf(stderr, "Can not support device memory!\n");
+  //   exit(-1);
+  // } else if (!(attrs.max_dm_size)) {
+  // } else {
+  //   kMaxDeviceMemorySize = attrs.max_dm_size;
+  //   printf("The RNIC has %dKB device memory\n", kMaxDeviceMemorySize / 1024);
+  // }
 }

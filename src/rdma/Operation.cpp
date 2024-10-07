@@ -68,18 +68,19 @@ static inline void fillSgeWr(ibv_sge &sg, ibv_recv_wr &wr, uint64_t source,
   wr.num_sge = 1;
 }
 
-static inline void fillSgeWr(ibv_sge &sg, ibv_send_wr &wr, uint64_t source,
-                             uint64_t size, uint32_t lkey) {
-  memset(&sg, 0, sizeof(sg));
-  sg.addr = (uintptr_t)source;
-  sg.length = size;
-  sg.lkey = lkey;
+// remove duplicated code
+// static inline void fillSgeWr(ibv_sge &sg, ibv_exp_send_wr &wr, uint64_t source,
+//                              uint64_t size, uint32_t lkey) {
+//   memset(&sg, 0, sizeof(sg));
+//   sg.addr = (uintptr_t)source;
+//   sg.length = size;
+//   sg.lkey = lkey;
 
-  memset(&wr, 0, sizeof(wr));
-  wr.wr_id = 0;
-  wr.sg_list = &sg;
-  wr.num_sge = 1;
-}
+//   memset(&wr, 0, sizeof(wr));
+//   wr.wr_id = 0;
+//   wr.sg_list = &sg;
+//   wr.num_sge = 1;
+// }
 
 // for UD and DC
 bool rdmaSend(ibv_qp *qp, uint64_t source, uint64_t size, uint32_t lkey,
