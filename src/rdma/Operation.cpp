@@ -322,25 +322,22 @@ bool rdmaCompareAndSwapMask(ibv_qp *qp, uint64_t source, uint64_t dest,
 
   fillSgeWr(sg, wr, source, 8, lkey);
 
-  wr.exp_opcode = IBV_EXP_WR_EXT_MASKED_ATOMIC_CMP_AND_SWP;
-  wr.exp_send_flags = IBV_EXP_SEND_EXT_ATOMIC_INLINE;
+  wr.opcode = IBV_WR_ATOMIC_CMP_AND_SWP;
+  wr.send_flags = IBV_SEND_INLINE;
 
   if (singal) {
-    wr.exp_send_flags |= IBV_EXP_SEND_SIGNALED;
+    wr.send_flags |= IBV_SEND_SIGNALED;
   }
 
-  wr.ext_op.masked_atomics.log_arg_sz = 3;
-  wr.ext_op.masked_atomics.remote_addr = dest;
-  wr.ext_op.masked_atomics.rkey = remoteRKey;
+  // wr.ext_op.masked_atomics.log_arg_sz = 3;
+  wr.wr.atomic.remote_addr = dest;
+  wr.wr.atomic.rkey = remoteRKey;
 
-  auto &op = wr.ext_op.masked_atomics.wr_data.inline_data.op.cmp_swap;
-  op.compare_val = compare;
-  op.swap_val = swap;
+  auto &op = wr.wr.atomic;
+  op.compare_add = compare;
+  op.swap = swap;
 
-  op.compare_mask = mask;
-  op.swap_mask = mask;
-
-  if (ibv_exp_post_send(qp, &wr, &wrBad)) {
+  if (ibv_post_send(qp, &wr, &wrBad)) {
     Debug::notifyError("Send with MASK ATOMIC_CMP_AND_SWP failed.");
     return false;
   }
