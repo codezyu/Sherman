@@ -259,23 +259,24 @@ bool rdmaFetchAndAddBoundary(ibv_qp *qp, uint64_t source, uint64_t dest,
 
   fillSgeWr(sg, wr, source, 8, lkey);
 
-  wr.exp_opcode = IBV_EXP_WR_EXT_MASKED_ATOMIC_FETCH_AND_ADD;
-  wr.exp_send_flags = IBV_EXP_SEND_EXT_ATOMIC_INLINE;
+  wr.opcode = IBV_WR_ATOMIC_FETCH_AND_ADD;
+  // set to RNIC buffer directly
+  wr.send_flags = IBV_SEND_INLINE;
   wr.wr_id = wr_id;
 
   if (singal) {
-    wr.exp_send_flags |= IBV_EXP_SEND_SIGNALED;
+    wr.send_flags |= IBV_SEND_SIGNALED;
   }
 
-  wr.ext_op.masked_atomics.log_arg_sz = 3;
-  wr.ext_op.masked_atomics.remote_addr = dest;
-  wr.ext_op.masked_atomics.rkey = remoteRKey;
+  // wr.ext_op.masked_atomics.log_arg_sz = 3;
+  wr.wr.atomic.remote_addr = dest;
+  wr.wr.atomic.rkey = remoteRKey;
 
-  auto &op = wr.ext_op.masked_atomics.wr_data.inline_data.op.fetch_add;
-  op.add_val = add;
-  op.field_boundary = 1ull << boundary;
+  auto &op = wr.wr.atomic;
+  op.compare_add = add;
+  // op.field_boundary = 1ull << boundary;
 
-  if (ibv_exp_post_send(qp, &wr, &wrBad)) {
+  if (ibv_post_send(qp, &wr, &wrBad)) {
     Debug::notifyError("Send with MASK FETCH_AND_ADD failed.");
     return false;
   }
