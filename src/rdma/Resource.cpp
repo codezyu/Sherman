@@ -25,7 +25,7 @@ bool createContext(RdmaContext *context, uint8_t port, int gidIndex,
 
   for (int i = 0; i < devicesNum; ++i) {
     // printf("Device %d: %s\n", i, ibv_get_device_name(deviceList[i]));
-    if (ibv_get_device_name(deviceList[i])[5] == '0') {
+    if (ibv_get_device_name(deviceList[i])[5] == '1') {
       devIndex = i;
       break;
     }
@@ -135,7 +135,7 @@ ibv_mr *createMemoryRegion(uint64_t mm, uint64_t mmSize, RdmaContext *ctx) {
 
   return mr;
 }
-
+// mm memory pool is kLockStartAddr
 ibv_mr *createMemoryRegionOnChip(uint64_t mm, uint64_t mmSize,
                                  RdmaContext *ctx) {
 
@@ -148,13 +148,13 @@ ibv_mr *createMemoryRegionOnChip(uint64_t mm, uint64_t mmSize,
     Debug::notifyError("Allocate on-chip memory failed");
     return nullptr;
   }
-
+  
   /* Device memory registration as memory region */
   int access = IBV_ACCESS_LOCAL_WRITE | IBV_ACCESS_REMOTE_READ |
-                     IBV_ACCESS_REMOTE_WRITE | IBV_ACCESS_REMOTE_ATOMIC;
-  struct ibv_mr *mr = ibv_reg_mr(ctx->pd, (void *)mm, mmSize, access);
+                     IBV_ACCESS_REMOTE_WRITE | IBV_ACCESS_REMOTE_ATOMIC |IBV_ACCESS_ZERO_BASED;
+  struct ibv_mr *mr = ibv_reg_dm_mr(ctx->pd, dm, mm, mmSize, access);
   if (!mr) {
-    Debug::notifyError("Memory registration failed");
+    Debug::notifyError("Device Memory registration failed");
     return nullptr;
   }
 

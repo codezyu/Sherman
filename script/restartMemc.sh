@@ -1,13 +1,16 @@
 #!/bin/bash
 
 addr=$(head -1 ../memcached.conf)
-port=$(awk 'NR==2{print}' ../memcached.conf)
-
+sshport=$(awk 'NR==2{print}' ../memcached.conf)
+echo "ssh prot: ${sshport}"
+port=$(awk 'NR==3{print}' ../memcached.conf)
+echo "memcached port: ${port}"
+key_path="~/.ssh/id_rsa_project"
 # kill old me
-ssh ${addr} "cat /tmp/memcached.pid | xargs kill"
+ssh -i ${key_path} ${addr}  -p ${sshport}  "cat /tmp/memcached.pid | xargs kill"
 
 # launch memcached
-ssh ${addr} "memcached -u root -l ${addr} -p  ${port} -c 10000 -d -P /tmp/memcached.pid"
+ssh -i ${key_path} ${addr} "memcached -u root -l ${addr} -p  ${port} -c 10000 -d -P /tmp/memcached.pid"
 sleep 1
 
 # init 
