@@ -40,7 +40,7 @@ void checkDMSupported(struct ibv_context *ctx) {
   // deprecated attr
   // attrs.comp_mask = IBV_EXP_DEVICE_ATTR_UMR;
   // attrs.comp_mask |= IBV_EXP_DEVICE_ATTR_MAX_DM_SIZE;
-  printf("may be this is not supported in MLX5\n");
+  printf("get max memory may be this is not supported in MLX5\n");
   // if (ibv_query_device(ctx, &attrs)) {
   //   printf("Couldn't query device attributes\n");
   // }
