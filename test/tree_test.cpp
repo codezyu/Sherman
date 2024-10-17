@@ -4,7 +4,8 @@
 int main() {
 
   DSMConfig config;
-  config.machineNR = 2;
+  // set node number
+  config.machineNR = 1;
   DSM *dsm = DSM::getInstance(config);
 
   dsm->registerThread();
@@ -12,7 +13,7 @@ int main() {
   auto tree = new Tree(dsm);
 
   Value v;
-
+  std::cout << "get node id" << std::endl;
   if (dsm->getMyNodeID() != 0) {
     while (true)
       ;
@@ -29,7 +30,7 @@ int main() {
   for (uint64_t i = 1; i < 10240; ++i) {
     auto res = tree->search(i, v);
     assert(res && v == i * 3);
-    std::cout << "search result:  " << res << " v: " << v << std::endl;
+    std::cout << "search result"<< " k: "<< i << " v: " << v << std::endl;
   }
 
   for (uint64_t i = 1; i < 10240; ++i) {

@@ -205,7 +205,7 @@ bool createQueuePair(ibv_qp **qp, ibv_qp_type mode, ibv_cq *cq,
   return createQueuePair(qp, mode, cq, cq, context, qpsMaxDepth, maxInlineData);
 }
 
-bool createDCTarget(ibv_qp **dct, ibv_cq *cq, RdmaContext *context,
+bool createDCTarget(ibv_qp *dct, ibv_cq *cq, RdmaContext *context,
                     uint32_t qpsMaxDepth, uint32_t maxInlineData) {
 
   // construct SRQ fot DC Target :)
@@ -234,7 +234,7 @@ bool createDCTarget(ibv_qp **dct, ibv_cq *cq, RdmaContext *context,
   dv_init_attr.dc_init_attr.dct_access_key = DCT_ACCESS_KEY;
 
 
-  *dct = mlx5dv_create_qp(context->ctx, &init_attr, &dv_init_attr);
+  dct = mlx5dv_create_qp(context->ctx, &init_attr, &dv_init_attr);
   if (dct == NULL) {
     Debug::notifyError("failed to create dc target");
     return false;

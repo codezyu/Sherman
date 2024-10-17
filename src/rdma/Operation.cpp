@@ -321,7 +321,8 @@ bool rdmaCompareAndSwapMask(ibv_qp *qp, uint64_t source, uint64_t dest,
   struct ibv_sge sg;
   struct ibv_send_wr wr;
   struct ibv_send_wr *wrBad;
-
+  // ibv_create_qp_ex();
+  //  ibv_exp_create_qp();
   fillSgeWr(sg, wr, source, 8, lkey);
 
   wr.opcode = IBV_WR_ATOMIC_CMP_AND_SWP;
